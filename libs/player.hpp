@@ -10,17 +10,19 @@ class Player {
 private:
     Sprite sprite;
     Texture walkTexture;
-    Texture PauseTexture;
+    Texture pauseTexture;
     float speed;
-
 public:
-    Player(Texture walkTexture, Texture PauseTexture, float speed);
+    Player(Texture walkTexture, Texture pauseTexture, float speed);
+    
+    void pause();
 
-    void walkRight();
+    void walkRight(int iFrame);
 
-    void walkLeft();
+    void walkLeft(int iFrame);
 
     Sprite& getSprite();
+
 };
 
 #endif

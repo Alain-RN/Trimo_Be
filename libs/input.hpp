@@ -18,8 +18,7 @@ private:
 public:
     Input();
     void handleInput(Event& event);
+    Button getButton(void) const;
 };
-
-
 
 #endif

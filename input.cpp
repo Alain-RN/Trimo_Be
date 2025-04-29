@@ -73,3 +73,8 @@ void Input::handleInput(Event& event)
         }
     }
 }
+
+Button Input::getButton(void) const
+{
+    return button;
+}

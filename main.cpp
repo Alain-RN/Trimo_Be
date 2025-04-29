@@ -1,45 +1,54 @@
 #include "./libs/main.hpp"
 
-float animationSpeed = 0.1f;
+float animationSpeed = 0.041f;
 float elapsedTime = 0.0f;
-bool isHealing = true;
-
 int iFrame = 0;
-void playAnimation(Sprite& player, int nbrFrame);
-void actionStart(Sprite& player, GameTexture playerTexture);
+
+GameTexture playerWalkTexture("./res/walking.png");
+GameTexture playerHealTexture("./res/healing.png");
+GameTexture playerPauseTexture("./res/pause.png");
+
+Input inputGame;
+
+Player playerTest(
+/* walk Texture  */ playerWalkTexture.getTexture(),
+/* Pause Texture */ playerPauseTexture.getTexture(),
+/* Speed         */ 0.1f
+);
+
+RectangleShape hitbox;
 
 int main()
 {
     RenderWindow window(VideoMode(800, 600), "Trimobe marche !");
 
+    Font font;
+    if(!font.loadFromFile("./res/font/JungleAdventurer.ttf"))
+        return - 1;
+    Text text;
+
+    text.setFont(font);
+    text.setCharacterSize(60);
+    text.setString("TrimobE");
+
+    text.setPosition(300, 400);
+
+    hitbox.setSize(sf::Vector2f(29.f, 68.5f));
+    hitbox.setOrigin(hitbox.getSize().x / 2, hitbox.getSize().y / 2);
+    hitbox.setFillColor(sf::Color(255, 0, 0));
+
     // window.setFramerateLimit(60);
-    GameTexture playerWalkTexture("./res/walking.png");
 
-    GameTexture playerHealTexture("./res/healing.png");
-
-    GameTexture playerPauseTexture("./res/pause.png");
-
-    Player playerTest(
-        /* walk Texture  */ playerWalkTexture.getTexture(),
-        /* Pause Texture */ playerPauseTexture.getTexture(),
-        /* Speed         */ 0.1f
-    );
-
-    playerTest.getSprite().setOrigin(playerTest.getSprite().getLocalBounds().width, 0);
-
-    playerTest.walkLeft();
+    hitbox.setPosition(playerTest.getSprite().getPosition().x - 4, playerTest.getSprite().getPosition().y);
 
 
     Sprite player(playerPauseTexture.getTexture());
-
-    player.setTextureRect(IntRect(64 * iFrame, 28, 64, 68));
-
-    player.setOrigin(player.getLocalBounds().width, 0);
-
-    player.setPosition( 40, 100);
+    player.setOrigin(player.getLocalBounds().width / 2, 0);
+    player.setPosition( 800, 100);
 
     Clock clock;
-    bool allerGauche = false;
+
+    RectangleShape obs(Vector2f(200, 300));
 
     while (window.isOpen())
     {
@@ -48,68 +57,62 @@ int main()
         {
             if (event.type == Event::Closed)
                 window.close();
+
+            inputGame.handleInput(event);
         }
 
         float deltaTime = clock.restart().asSeconds();
         elapsedTime += deltaTime;
 
+        checkButton(iFrame);
 
-
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+        if (elapsedTime >= animationSpeed)
         {
-            allerGauche = true;
-            player.setScale(-1.f, 1.f); // Tourner vers la gauche
-            player.move(-0.1f, 0.f);    // Bouger vers la gauche
+            if (iFrame != 12)
+            {
+                iFrame++;
+            }
+            else
+            {
+                iFrame = 0;
+            }
+            elapsedTime = 0.0f;
         }
-        else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+
+        if(hitbox.getGlobalBounds().intersects(obs.getGlobalBounds()))
         {
-            allerGauche = false;
-            player.setScale(1.f, 1.f); // Normal vers la droite
-            player.move(0.1f, 0.f);    // Bouger vers la droite
+            text.setString("TrimobEeeeeeeeeeeee");
+        } else {
+            text.setString("Trim");
         }
-
-
-
-        
-        // actionStart(player, playerPauseTexture);
 
         window.clear();
-        window.draw(player);
-        // window.draw(playerTest.getSprite());
+        window.draw(hitbox);
+        window.draw(playerTest.getSprite());
+        window.draw(obs);
+        window.draw(text);
+
         window.display();
     }
 
     return 0;
 }
 
-void playAnimation(Sprite& sptite, int nbrFrame)
+void checkButton(int iFrame)
 {
-    if (elapsedTime >= animationSpeed)
+    if (inputGame.getButton().left)
     {
-        if (iFrame != nbrFrame)
-        {
-            sptite.setTextureRect(IntRect(64 * iFrame, 28, 64, 68));
-            iFrame++;
-        }
-        else
-        {
-            iFrame = 0;
-        }
-        elapsedTime = 0.0f;
+        playerTest.walkLeft(iFrame);
+        playerTest.getSprite().move(-0.03f, 0.f);
+        hitbox.setPosition(playerTest.getSprite().getPosition().x + 4, playerTest.getSprite().getPosition().y);
     }
-}
-
-void actionStart(Sprite& player, GameTexture playerTexture)
-{
-    if(isHealing)
+    else if (inputGame.getButton().right)
     {
-        if(iFrame != playerTexture.getFrame())
-        {
-            playAnimation(player, playerTexture.getFrame());
-        }
-        else
-        {
-            isHealing = false;
-        }
+        playerTest.walkRight(iFrame);
+        playerTest.getSprite().move(0.03f, 0.f);
+        hitbox.setPosition(playerTest.getSprite().getPosition().x - 4, playerTest.getSprite().getPosition().y);
+    }
+    else {
+        playerTest.pause();
     }
 }
